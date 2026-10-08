@@ -24,18 +24,21 @@ Projections, and AI-drafted state briefs with every figure traced to a computed 
 
 ## Method
 
-See [docs/methods.md](docs/methods.md). In one line: a state's windfall is its net position
-in each commodity (production minus consumption, averaged over the three prior years)
-times the twelve-month change in the world price, summed over commodities.
+See the methods note, [docs/methods.pdf](docs/methods.pdf) (source: `docs/methods.tex`).
+In one line: a state's windfall is its net position in each commodity (production minus
+consumption, averaged over the three prior years) times the twelve-month change in the
+world price, summed over commodities.
 
 ## Reproduce
 
-Python 3.11+ with `pandas`, `numpy`, `requests`, `openpyxl`, `xlrd`.
+Python 3.11+ with `pandas`, `numpy`, `requests`, `openpyxl`, `xlrd`, `matplotlib`; a TeX
+distribution with `latexmk` for the methods note.
 
 ```
 python code/01_fetch.py            # public inputs -> data/raw/ (no API keys)
 python code/02_build_ledger.py     # -> data/clean/*.csv
 python code/03_build_dashboard.py  # -> dashboard/index.html
+python code/04_figures.py          # -> docs/fig_states.pdf; then latexmk -pdf docs/methods.tex
 ```
 
 `data/raw/CHECKSUMS.sha256` records the inputs used; a mismatch after re-fetching means a
@@ -48,7 +51,7 @@ code/        fetch, build, and dashboard scripts
 data/raw/    downloaded inputs (not tracked)
 data/clean/  ledger outputs (tracked)
 dashboard/   template.html (source), index.html (standalone build), fragment.html
-docs/        methods note
+docs/        methods note (LaTeX source and PDF) and its figure
 ```
 
 ## Sources
