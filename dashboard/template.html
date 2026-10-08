@@ -1,0 +1,458 @@
+<title>State Shock Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a ledger sheet. Summary line items first, the state tile map as the centerpiece
+   with credit and debit columns beside it, then one state's account and the full table. */
+:root {
+  --page: #f6f7f8;
+  --sheet: #fdfdfc;
+  --ink: #101418;
+  --ink-2: #4b5259;
+  --muted: #80868c;
+  --rule: #e2e4e6;
+  --axis: #c4c8cc;
+  --accent: #1f3a5f;
+  --line: #2a78d6;
+  --focus: #2a78d6;
+  /* diverging scale: losses (debits) red, gains (credits) blue, neutral gray */
+  --l3: #b33231; --l2: #e46d6c; --l1: #f6c7c6;
+  --n0: #ecebe8;
+  --g1: #c3dafa; --g2: #5598e7; --g3: #1c5cab;
+  --credit: #1c5cab; --debit: #b33231;
+  --font-ui: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-fig: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0e1012; --sheet: #16191c; --ink: #f2f3f4; --ink-2: #c1c5c9; --muted: #8b9197;
+    --rule: #2a2e33; --axis: #3d4248; --accent: #9db7d9; --line: #3987e5; --focus: #6da7ec;
+    --l3: #ef7b7a; --l2: #b84847; --l1: #5a2a2a; --n0: #34373a;
+    --g1: #1f3d63; --g2: #2f78d0; --g3: #86b6ef;
+    --credit: #86b6ef; --debit: #ef7b7a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0e1012; --sheet: #16191c; --ink: #f2f3f4; --ink-2: #c1c5c9; --muted: #8b9197;
+  --rule: #2a2e33; --axis: #3d4248; --accent: #9db7d9; --line: #3987e5; --focus: #6da7ec;
+  --l3: #ef7b7a; --l2: #b84847; --l1: #5a2a2a; --n0: #34373a;
+  --g1: #1f3d63; --g2: #2f78d0; --g3: #86b6ef;
+  --credit: #86b6ef; --debit: #ef7b7a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--ink); font-family: var(--font-ui); font-size: 15px; line-height: 1.5; margin: 0; }
+.wrap { max-width: 1200px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 48px; display: grid; gap: 20px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+.fig { font-family: var(--font-fig); font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.masthead { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+.masthead h1 { font-size: clamp(28px, 4.2vw, 44px); font-weight: 800; letter-spacing: -.02em; line-height: 1.05; }
+.masthead p { margin: 6px 0 0; color: var(--ink-2); max-width: 62ch; }
+.stamp { font-size: 13px; color: var(--ink-2); text-align: right; }
+.stamp b { color: var(--ink); font-weight: 600; }
+.pill { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--axis); border-radius: 999px; padding: 2px 8px; color: var(--ink-2); }
+
+.controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--axis); border-radius: 8px; overflow: hidden; }
+.seg button { font: inherit; font-size: 14px; background: transparent; color: var(--ink-2); border: 0; padding: 7px 14px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--axis); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--sheet); font-weight: 600; }
+.seg button:focus-visible, .tile:focus-visible, th button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ctl-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; margin-right: 6px; }
+.sub { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; min-height: 40px; color: var(--ink-2); font-size: 14px; }
+.sub label { display: inline-flex; align-items: center; gap: 10px; }
+.sub input[type="range"] { width: min(260px, 60vw); accent-color: var(--accent); }
+
+.summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; }
+.summary > div { padding: 14px 16px; display: grid; gap: 2px; min-width: 0; }
+.summary > div + div { border-left: 1px solid var(--rule); }
+.summary .v { font-family: var(--font-fig); font-size: 26px; font-weight: 500; line-height: 1.2; }
+.summary .k { font-size: 13px; color: var(--ink-2); }
+.v.credit { color: var(--credit); } .v.debit { color: var(--debit); }
+
+.main { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.sheet { background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; padding: 18px; min-width: 0; display: grid; gap: 12px; align-content: start; }
+.sheet h2 { font-size: 17px; font-weight: 700; }
+.sheet .note { font-size: 13px; color: var(--ink-2); margin: 0; }
+
+.map svg { width: 100%; height: auto; display: block; }
+.tile { cursor: pointer; }
+.tile rect { stroke: var(--sheet); stroke-width: 2; }
+.tile.sel rect { stroke: var(--ink); stroke-width: 2.5; }
+.tile text { font-family: var(--font-ui); font-size: 13px; font-weight: 600; pointer-events: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 0; max-width: 560px; align-items: center; font-size: 12px; color: var(--ink-2); }
+.legend .sw { display: grid; gap: 3px; justify-items: center; flex: 1 1 64px; text-align: center; }
+.legend .sw i { display: block; width: 100%; height: 12px; }
+.legend .sw:first-child i { border-radius: 3px 0 0 3px; } .legend .sw:last-child i { border-radius: 0 3px 3px 0; }
+
+.ledger { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.ledger h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; padding-bottom: 6px; border-bottom: 1px solid var(--axis); }
+.ledger ol { list-style: none; margin: 0; padding: 0; display: grid; }
+.ledger li { display: grid; grid-template-columns: 2.4em minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--rule); font-size: 14px; cursor: pointer; }
+.ledger li:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.ledger .bar { height: 8px; border-radius: 0 4px 4px 0; }
+.ledger .amt { font-family: var(--font-fig); font-size: 13px; text-align: right; }
+.ledger .ab { font-weight: 600; }
+
+.account { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 20px; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart .ax text { font-family: var(--font-fig); font-size: 11px; fill: var(--muted); }
+.chart .grid line { stroke: var(--rule); }
+.chart .zero { stroke: var(--axis); stroke-width: 1.2; }
+.chart .ln { fill: none; stroke: var(--line); stroke-width: 2; }
+.chart .ol { fill: none; stroke: var(--line); stroke-width: 2; stroke-dasharray: 5 4; }
+.chart .cross { stroke: var(--muted); stroke-width: 1; }
+.chart .dot { fill: var(--line); stroke: var(--sheet); stroke-width: 2; }
+.chart .lab { font-family: var(--font-ui); font-size: 12px; fill: var(--ink-2); }
+.tip { position: fixed; pointer-events: none; z-index: 10; background: var(--sheet); color: var(--ink); border: 1px solid var(--axis); border-radius: 8px; padding: 8px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.12); max-width: 280px; }
+.tip b { font-weight: 600; } .tip .fig { font-size: 12px; }
+.tip table { border-collapse: collapse; margin-top: 4px; }
+.tip td { padding: 1px 0; } .tip td + td { padding-left: 12px; text-align: right; }
+
+table.data { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.data th, table.data td { padding: 6px 8px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+table.data th:first-child, table.data td:first-child { text-align: left; }
+table.data th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--axis); }
+table.data td { font-family: var(--font-fig); font-size: 13px; }
+table.data td:first-child { font-family: var(--font-ui); font-size: 14px; }
+th button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-transform: inherit; letter-spacing: inherit; }
+.scroll { overflow-x: auto; }
+.credit-t { color: var(--credit); } .debit-t { color: var(--debit); }
+
+.methods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.methods p, .methods li { color: var(--ink-2); font-size: 14px; max-width: 68ch; }
+.methods ul { padding-left: 18px; margin: 0; display: grid; gap: 6px; }
+.formula { font-family: var(--font-fig); font-size: 14px; background: var(--page); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; color: var(--ink); overflow-x: auto; }
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 12px; }
+footer a, .methods a { color: var(--accent); }
+
+@media (max-width: 900px) {
+  .main, .account, .methods { grid-template-columns: minmax(0, 1fr); }
+  .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .summary > div:nth-child(3) { border-left: 0; }
+  .summary > div:nth-child(n+3) { border-top: 1px solid var(--rule); }
+}
+@media (max-width: 520px) {
+  .ledger { grid-template-columns: minmax(0, 1fr); }
+  .summary .v { font-size: 21px; }
+  .stamp { text-align: left; }
+}
+@media (prefers-reduced-motion: no-preference) { .tile rect { transition: fill .25s ease; } }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <div class="eyebrow">Commodity windfalls across the fifty states <span class="pill">Prototype v0</span></div>
+      <h1>State Shock Ledger</h1>
+      <p>When world prices for oil, gas, grain or cattle move, income moves between states. This ledger measures each state's gain or loss as a share of its economy, using only public federal data.</p>
+    </div>
+    <div class="stamp" id="stamp"></div>
+  </header>
+
+  <div class="controls" role="group" aria-label="View">
+    <div><span class="ctl-label">View</span>
+      <span class="seg" id="mode">
+        <button type="button" id="m-latest" data-v="latest" aria-pressed="true">Latest</button>
+        <button type="button" id="m-history" data-v="history" aria-pressed="false">History</button>
+        <button type="button" id="m-scenario" data-v="scenario" aria-pressed="false">Scenario</button>
+      </span>
+    </div>
+    <div><span class="ctl-label">Commodities</span>
+      <span class="seg" id="scope">
+        <button type="button" id="s-all" data-v="all" aria-pressed="true">All</button>
+        <button type="button" id="s-energy" data-v="energy" aria-pressed="false">Energy</button>
+        <button type="button" id="s-ag" data-v="ag" aria-pressed="false">Agriculture</button>
+      </span>
+    </div>
+  </div>
+  <div class="sub" id="sub"></div>
+
+  <section class="summary" aria-label="Summary" id="summary"></section>
+
+  <div class="main">
+    <section class="sheet map" aria-labelledby="map-h">
+      <h2 id="map-h">Windfall as a share of state GDP</h2>
+      <p class="note" id="map-note"></p>
+      <div id="map"></div>
+      <div class="legend" id="legend" aria-label="Color scale, percent of state GDP"></div>
+    </section>
+    <section class="sheet" aria-labelledby="led-h">
+      <h2 id="led-h">The ledger</h2>
+      <p class="note">Annualized dollars. Credits are states that gain from the price change; debits are states that pay for it.</p>
+      <div class="ledger" id="ledger"></div>
+    </section>
+  </div>
+
+  <section class="sheet" aria-labelledby="acc-h">
+    <h2 id="acc-h">State account</h2>
+    <div class="account">
+      <div class="chart"><p class="note" id="chart-note"></p><div id="chart"></div></div>
+      <div><p class="note" id="acct-note"></p><div class="scroll"><table class="data" id="acct"></table></div></div>
+    </div>
+  </section>
+
+  <section class="sheet" aria-labelledby="tab-h">
+    <h2 id="tab-h">All states</h2>
+    <p class="note" id="tab-note"></p>
+    <div class="scroll"><table class="data" id="all"></table></div>
+  </section>
+
+  <section class="sheet" aria-labelledby="met-h">
+    <h2 id="met-h">How the ledger is built</h2>
+    <div class="methods">
+      <div>
+        <p>Each state's windfall is its net position in a commodity multiplied by the change in the world price over the previous twelve months, summed across commodities:</p>
+        <div class="formula">W<sub>s,t</sub> = &Sigma;<sub>c</sub> N<sub>s,c</sub> &times; (p<sub>c,t</sub> &minus; p<sub>c,t&minus;12</sub>)</div>
+        <p>For energy, the net position is production minus consumption: crude oil against crude-priced petroleum use (excluding gas liquids, petroleum coke and refinery still gas), and marketed natural gas against total gas use. For agriculture, it is the quantity equivalent of farm cash receipts. Positions are averaged over the three prior years so that the measure moves with prices, following the IMF commodity terms-of-trade method.</p>
+      </div>
+      <div>
+        <ul>
+          <li>Figures are gross values at benchmark prices (WTI, Henry Hub, world grain and beef prices). They are an upper bound on income, because part of the windfall goes to owners outside the state and local prices differ from benchmarks.</li>
+          <li>Agriculture covers the producer side only in this prototype. Farm prices pass through to food prices weakly and with delay.</li>
+          <li>Federal offshore production belongs to no state and is reported on its own line.</li>
+          <li>The outlook uses EIA's Short-Term Energy Outlook price path against the average of the last twelve months of prices.</li>
+          <li>Sources: EIA State Energy Data System and daily spot prices; EIA Short-Term Energy Outlook; USDA ERS Farm Income and Wealth Statistics; World Bank commodity prices; BEA state GDP.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+const D = /*__DATA__*/null;
+
+const GRID = {AK:[0,0],ME:[10,0],WI:[5,1],VT:[9,1],NH:[10,1],
+  WA:[0,2],ID:[1,2],MT:[2,2],ND:[3,2],MN:[4,2],IL:[5,2],MI:[6,2],NY:[8,2],MA:[9,2],
+  OR:[0,3],NV:[1,3],WY:[2,3],SD:[3,3],IA:[4,3],IN:[5,3],OH:[6,3],PA:[7,3],NJ:[8,3],CT:[9,3],RI:[10,3],
+  CA:[0,4],UT:[1,4],CO:[2,4],NE:[3,4],MO:[4,4],KY:[5,4],WV:[6,4],VA:[7,4],MD:[8,4],DE:[9,4],
+  AZ:[1,5],NM:[2,5],KS:[3,5],AR:[4,5],TN:[5,5],NC:[6,5],SC:[7,5],DC:[8,5],
+  OK:[3,6],LA:[4,6],MS:[5,6],AL:[6,6],GA:[7,6],HI:[0,7],TX:[3,7],FL:[8,7]};
+const STATES = Object.keys(GRID);
+const OFFSHORE = ["X3", "X5"];
+const LABEL = {crude_oil:"Crude oil", natural_gas:"Natural gas", corn:"Corn", soybeans:"Soybeans", wheat:"Wheat", cattle:"Cattle"};
+const UNIT = {crude_oil:"bbl", natural_gas:"MMBtu"};
+const BINS = [-5, -1, -0.25, 0.25, 1, 5];
+const CLASS = ["l3","l2","l1","n0","g1","g2","g3"];
+const BIN_LABEL = ["≤ −5%", "−5 to −1", "−1 to −0.25", "±0.25", "0.25 to 1", "1 to 5", "≥ 5%"];
+
+const S = { mode: "latest", scope: "all", month: D.months.length - 1, sel: "TX", sort: ["p", -1],
+  oil: D.spot.crude_oil, gas: D.spot.natural_gas };
+try { const k = localStorage.getItem("ssl-state"); if (k && GRID[k]) S.sel = k; } catch (e) {}
+
+const $ = id => document.getElementById(id);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const comms = () => S.scope === "energy" ? D.energy : S.scope === "ag" ? D.ag : D.energy.concat(D.ag);
+const fmtPct = (p, d = 2) => { if (p == null || isNaN(p)) return "–"; if (Math.abs(p) < 0.5 * Math.pow(10, -d)) return (0).toFixed(d) + "%";
+  return (p > 0 ? "+" : "−") + Math.abs(p).toFixed(d) + "%"; };
+const fmtUsd = u => { if (u == null || isNaN(u)) return "–"; const a = Math.abs(u), s = u > 0 ? "+" : u < 0 ? "−" : "";
+  return a >= 1000 ? s + "$" + (a / 1000).toFixed(1) + "bn" : s + "$" + a.toFixed(0) + "m"; };
+const monthName = m => { const [y, mm] = m.split("-"); return new Date(+y, +mm - 1, 1).toLocaleString("en-US", {month: "short", year: "numeric"}); };
+const binOf = p => { let i = 0; while (i < BINS.length && p > BINS[i]) i++; if (Math.abs(p) <= 0.25) return 3; return i; };
+
+/* Current windfall per state and commodity under the active view: {state: {c: [usd_m, pct]}} */
+function current() {
+  const out = {};
+  for (const s of STATES.concat(OFFSHORE)) {
+    out[s] = {};
+    for (const c of comms()) {
+      let v = null;
+      if (S.mode === "latest") v = D.latest[s] && D.latest[s][c];
+      else if (S.mode === "history") { const h = D.hist[s] && D.hist[s][c]; if (h) v = [h.u[S.month], h.p[S.month]]; }
+      else if (D.energy.includes(c)) {
+        const pos = D.positions[s] && D.positions[s][c];
+        if (pos) { const price = c === "crude_oil" ? S.oil : S.gas; const usd = pos[0] * (price - D.base[c]) / 1e6;
+          const g = D.gdp[s]; v = [usd, g ? 100 * usd * 1e6 / g : null]; }
+      }
+      if (v && v[0] != null) out[s][c] = v;
+    }
+  }
+  return out;
+}
+const total = rec => { let u = 0, p = 0, any = false; for (const c in rec) { any = true; u += rec[c][0] || 0; p += rec[c][1] || 0; } return any ? [u, p] : [null, null]; };
+
+function renderStamp() {
+  $("stamp").innerHTML = `Energy prices as of <b>${new Date(D.meta.asof + "T12:00").toLocaleDateString("en-US", {month: "long", day: "numeric", year: "numeric"})}</b><br>
+    Farm prices through <b>${monthName(D.meta.lastMonth)}</b> · outlook: EIA STEO, ${D.meta.steo}`;
+  $("foot").textContent = `State Shock Ledger, prototype v0, built ${D.meta.built}. A research prototype by Samson M'boueke, not an official statistic. All inputs are public federal and World Bank data.`;
+}
+
+function renderSub() {
+  const el = $("sub");
+  if (S.mode === "latest") {
+    el.innerHTML = `<span>Change against one year earlier. WTI <span class="fig">$${D.spot.crude_oil.toFixed(2)}</span> vs <span class="fig">$${D.yearAgo.crude_oil.toFixed(2)}</span>; Henry Hub <span class="fig">$${D.spot.natural_gas.toFixed(2)}</span> vs <span class="fig">$${D.yearAgo.natural_gas.toFixed(2)}</span>.</span>`;
+  } else if (S.mode === "history") {
+    el.innerHTML = `<label for="month">Month <input type="range" id="month" min="0" max="${D.months.length - 1}" value="${S.month}"></label>
+      <span class="fig" id="month-v">${monthName(D.months[S.month])}</span><span>Price change over the previous twelve months.</span>`;
+    $("month").addEventListener("input", e => { S.month = +e.target.value; $("month-v").textContent = monthName(D.months[S.month]); draw(false); });
+  } else {
+    el.innerHTML = `<label for="oil">Oil (WTI) <input type="range" id="oil" min="30" max="160" step="1" value="${Math.round(S.oil)}"></label><span class="fig" id="oil-v">$${S.oil.toFixed(0)}/bbl</span>
+      <label for="gas">Gas (Henry Hub) <input type="range" id="gas" min="1" max="10" step="0.1" value="${S.gas.toFixed(1)}"></label><span class="fig" id="gas-v">$${S.gas.toFixed(2)}/MMBtu</span>
+      <span>Against the last twelve months' average: oil <span class="fig">$${D.base.crude_oil.toFixed(2)}</span>, gas <span class="fig">$${D.base.natural_gas.toFixed(2)}</span>. Energy only.</span>`;
+    $("oil").addEventListener("input", e => { S.oil = +e.target.value; $("oil-v").textContent = `$${S.oil.toFixed(0)}/bbl`; draw(false); });
+    $("gas").addEventListener("input", e => { S.gas = +e.target.value; $("gas-v").textContent = `$${S.gas.toFixed(2)}/MMBtu`; draw(false); });
+  }
+}
+
+function renderSummary(cur) {
+  let gain = 0, loss = 0, best = null, worst = null;
+  for (const s of STATES) { const [u, p] = total(cur[s]); if (u == null) continue;
+    if (u > 0) gain += u; else loss += u;
+    if (p != null && (!best || p > best[1])) best = [s, p];
+    if (p != null && (!worst || p < worst[1])) worst = [s, p]; }
+  const off = OFFSHORE.reduce((a, s) => a + (total(cur[s])[0] || 0), 0);
+  $("summary").innerHTML = `
+    <div><span class="k">States gaining</span><span class="v credit">${fmtUsd(gain)}</span></div>
+    <div><span class="k">States losing</span><span class="v debit">${fmtUsd(loss)}</span></div>
+    <div><span class="k">Largest gain, share of GDP</span><span class="v">${best ? best[0] + " " + fmtPct(best[1], 1) : "–"}</span></div>
+    <div><span class="k">Federal offshore</span><span class="v">${fmtUsd(off)}</span></div>`;
+}
+
+function fillFor(p) { if (p == null) return css("--n0"); return css("--" + CLASS[binOf(p)]); }
+function lum(hex) { const h = hex.replace("#", ""); const c = [0, 2, 4].map(i => { const v = parseInt(h.substr(i, 2), 16) / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; }
+function inkFor(p) { return lum(fillFor(p)) > 0.25 ? "#101418" : "#ffffff"; }
+
+function renderMap(cur) {
+  const W = 56, G = 4, cols = 11, rows = 8;
+  let svg = `<svg viewBox="0 0 ${cols * (W + G)} ${rows * (W + G)}" role="img" aria-label="Tile map of states colored by windfall share of GDP">`;
+  for (const s of STATES) { const [x, y] = GRID[s]; const p = total(cur[s])[1];
+    svg += `<g class="tile${s === S.sel ? " sel" : ""}" data-s="${s}" tabindex="0" role="button" aria-label="${D.names[s]} ${fmtPct(p)}">
+      <rect x="${x * (W + G)}" y="${y * (W + G)}" width="${W}" height="${W}" rx="5" fill="${fillFor(p)}"></rect>
+      <text x="${x * (W + G) + W / 2}" y="${y * (W + G) + W / 2 + 5}" text-anchor="middle" fill="${inkFor(p)}">${s}</text></g>`; }
+  svg += `</svg>`;
+  $("map").innerHTML = svg;
+  $("map").querySelectorAll(".tile").forEach(t => {
+    const s = t.dataset.s;
+    t.addEventListener("mousemove", e => showTip(e, stateTip(s, cur)));
+    t.addEventListener("mouseleave", hideTip);
+    t.addEventListener("click", () => select(s));
+    t.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(s); } });
+    t.addEventListener("focus", () => { const r = t.getBoundingClientRect(); showTip({clientX: r.right, clientY: r.top}, stateTip(s, cur)); });
+    t.addEventListener("blur", hideTip);
+  });
+  const notes = { latest: "Energy: daily spot prices against the same week a year earlier. Agriculture: latest monthly prices against twelve months earlier.",
+    history: `${monthName(D.months[S.month])}: twelve-month price change, valued at each state's net position.`,
+    scenario: "Energy windfall if prices settled at the chosen levels for a year." };
+  $("map-note").textContent = notes[S.mode];
+  $("legend").innerHTML = CLASS.map((c, i) => `<div class="sw"><i style="background:var(--${c})"></i><span>${BIN_LABEL[i]}</span></div>`).join("");
+}
+
+function stateTip(s, cur) {
+  const rec = cur[s], [u, p] = total(rec);
+  let rows = Object.keys(rec).filter(c => Math.abs(rec[c][0]) >= 0.5).sort((a, b) => Math.abs(rec[b][0]) - Math.abs(rec[a][0]))
+    .map(c => `<tr><td>${LABEL[c]}</td><td class="fig">${fmtUsd(rec[c][0])}</td></tr>`).join("");
+  return `<b>${D.names[s]}</b><br><span class="fig">${fmtPct(p)} of GDP · ${fmtUsd(u)}</span>${rows ? `<table>${rows}</table>` : ""}`;
+}
+
+function renderLedger(cur) {
+  const list = STATES.map(s => [s, total(cur[s])[0]]).filter(x => x[1] != null && Math.abs(x[1]) >= 1);
+  const cr = list.filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const db = list.filter(x => x[1] < 0).sort((a, b) => a[1] - b[1]).slice(0, 10);
+  const mx = Math.max(1, ...cr.map(x => x[1]), ...db.map(x => -x[1]));
+  const col = (rows, cls, title) => `<div><h3>${title}</h3><ol>${rows.length ? rows.map(([s, u]) =>
+    `<li data-s="${s}" title="${D.names[s]}"><span class="ab">${s}</span><span><div class="bar" style="width:${Math.max(2, 100 * Math.abs(u) / mx)}%;background:var(--${cls})"></div></span><span class="amt">${fmtUsd(u)}</span></li>`).join("")
+    : `<li><span></span><span class="note">None in this view</span><span></span></li>`}</ol></div>`;
+  $("ledger").innerHTML = col(cr, "credit", "Credits") + col(db, "debit", "Debits");
+  $("ledger").querySelectorAll("li[data-s]").forEach(li => li.addEventListener("click", () => select(li.dataset.s)));
+}
+
+function seriesFor(s) {
+  const n = D.months.length, p = new Array(n).fill(null);
+  for (const c of comms()) { const h = D.hist[s] && D.hist[s][c]; if (!h) continue;
+    for (let i = 0; i < n; i++) if (h.p[i] != null) p[i] = (p[i] || 0) + h.p[i]; }
+  return p;
+}
+
+function renderChart() {
+  const s = S.sel, hist = seriesFor(s);
+  const showOut = S.scope === "energy" && D.outlook[s];
+  const out = showOut ? D.outlook[s].p : [];
+  const n = hist.length, m = out.length, N = n + m;
+  const W = 640, H = 260, L = 46, R = 12, T = 12, B = 26;
+  const vals = hist.concat(out).filter(v => v != null);
+  if (!vals.length) { $("chart").innerHTML = `<p class="note">No data for this state in this view.</p>`; return; }
+  let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals); const pad = (hi - lo) * 0.08 || 1; lo -= pad; hi += pad;
+  const x = i => L + (W - L - R) * i / (N - 1), y = v => T + (H - T - B) * (hi - v) / (hi - lo);
+  const step = niceStep((hi - lo) / 5);
+  let g = `<g class="grid">`, ax = `<g class="ax">`;
+  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) { g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"></line>`;
+    ax += `<text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${(+v.toFixed(6)).toString().replace("-", "−")}%</text>`; }
+  const all = D.months.concat(showOut ? D.outlook.months : []);
+  for (let i = 0; i < N; i++) { const [yy, mm] = all[i].split("-"); if (mm === "01" && +yy % 5 === 0) ax += `<text x="${x(i)}" y="${H - 6}" text-anchor="middle">${yy}</text>`; }
+  g += `</g>`; ax += `</g>`;
+  const path = (arr, off) => { let d = "", pen = false; arr.forEach((v, i) => { if (v == null) { pen = false; return; } d += (pen ? "L" : "M") + x(i + off).toFixed(1) + " " + y(v).toFixed(1); pen = true; }); return d; };
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Monthly windfall for ${D.names[s]}, percent of GDP">${g}
+    <line class="zero" x1="${L}" x2="${W - R}" y1="${y(0)}" y2="${y(0)}"></line>${ax}
+    <path class="ln" d="${path(hist, 0)}"></path>`;
+  if (showOut) { const lastV = hist[n - 1];
+    svg += `<path class="ol" d="M${x(n - 1)} ${y(lastV)}${path(out, n).replace(/^M/, "L")}"></path>
+      <text class="lab" x="${Math.min(x(N - 1), W - R)}" y="${Math.max(T + 10, y(out[m - 1]) - 8)}" text-anchor="end">EIA outlook</text>`; }
+  const li = n - 1; svg += `<circle class="dot" cx="${x(li)}" cy="${y(hist[li])}" r="4"></circle>`;
+  svg += `<line class="cross" id="cx" x1="0" x2="0" y1="${T}" y2="${H - B}" visibility="hidden"></line><circle class="dot" id="cd" r="4" visibility="hidden"></circle>
+    <rect id="hit" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"></rect></svg>`;
+  $("chart").innerHTML = svg;
+  $("chart-note").textContent = `${D.names[s]}: monthly windfall, percent of state GDP, ${S.scope === "all" ? "all commodities" : S.scope === "energy" ? "energy" : "agriculture"}.` +
+    (S.scope === "energy" ? ` Dashed line: windfall implied by EIA's ${D.meta.steo} price outlook.` : " Choose Energy to add EIA's price outlook.");
+  const svgEl = $("chart").querySelector("svg"), hit = $("hit");
+  const move = e => { const r = svgEl.getBoundingClientRect(); const px = (e.clientX - r.left) * W / r.width;
+    const i = Math.max(0, Math.min(N - 1, Math.round((px - L) / (W - L - R) * (N - 1))));
+    const v = i < n ? hist[i] : out[i - n]; if (v == null) return hideTip();
+    $("cx").setAttribute("x1", x(i)); $("cx").setAttribute("x2", x(i)); $("cx").setAttribute("visibility", "visible");
+    $("cd").setAttribute("cx", x(i)); $("cd").setAttribute("cy", y(v)); $("cd").setAttribute("visibility", "visible");
+    showTip(e, `<b>${monthName(all[i])}</b>${i >= n ? " (outlook)" : ""}<br><span class="fig">${fmtPct(v)} of GDP</span>`); };
+  hit.addEventListener("mousemove", move);
+  hit.addEventListener("mouseleave", () => { $("cx").setAttribute("visibility", "hidden"); $("cd").setAttribute("visibility", "hidden"); hideTip(); });
+}
+function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw / p; return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p; }
+
+function renderAccount(cur) {
+  const s = S.sel, rec = cur[s];
+  const head = `<tr><th>Commodity</th><th>Net position</th><th>Windfall</th><th>% GDP</th></tr>`;
+  const rows = comms().map(c => { const v = rec[c]; const pos = D.positions[s] && D.positions[s][c];
+    const np = pos && UNIT[c] ? `${(pos[0] / 1e6).toLocaleString("en-US", {maximumFractionDigits: 1})}m ${UNIT[c]}` : D.ag.includes(c) ? "producer" : "–";
+    return v ? `<tr><td>${LABEL[c]}</td><td>${np}</td><td class="${v[0] > 0 ? "credit-t" : v[0] < 0 ? "debit-t" : ""}">${fmtUsd(v[0])}</td><td>${fmtPct(v[1])}</td></tr>` : ""; }).join("");
+  const [u, p] = total(rec);
+  $("acct").innerHTML = head + rows + `<tr><td><b>Total</b></td><td></td><td class="${u > 0 ? "credit-t" : u < 0 ? "debit-t" : ""}"><b>${fmtUsd(u)}</b></td><td><b>${fmtPct(p)}</b></td></tr>`;
+  const when = S.mode === "latest" ? "latest prices" : S.mode === "history" ? monthName(D.months[S.month]) : "the scenario";
+  $("acct-note").textContent = `${D.names[s]}, ${when}. Net position is the annual average of the three prior years (energy: production minus use).`;
+}
+
+function renderTable(cur) {
+  const rows = STATES.map(s => { const r = cur[s]; const t = total(r);
+    const e = D.energy.reduce((a, c) => a + (r[c] ? r[c][1] || 0 : 0), 0), g = D.ag.reduce((a, c) => a + (r[c] ? r[c][1] || 0 : 0), 0);
+    return {s, n: D.names[s], u: t[0], p: t[1], e, g}; });
+  const [k, dir] = S.sort; rows.sort((a, b) => k === "n" ? dir * a.n.localeCompare(b.n) : dir * ((a[k] ?? -1e18) - (b[k] ?? -1e18)));
+  const th = (key, lab) => `<th aria-sort="${S.sort[0] === key ? (S.sort[1] > 0 ? "ascending" : "descending") : "none"}"><button type="button" data-k="${key}">${lab}${S.sort[0] === key ? (S.sort[1] > 0 ? " ▲" : " ▼") : ""}</button></th>`;
+  $("all").innerHTML = `<tr>${th("n", "State")}${th("u", "Windfall")}${th("p", "% GDP")}${S.scope !== "ag" ? th("e", "Energy, % GDP") : ""}${S.scope !== "energy" ? th("g", "Farm, % GDP") : ""}</tr>` +
+    rows.map(r => `<tr><td>${r.n}</td><td class="${r.u > 0 ? "credit-t" : r.u < 0 ? "debit-t" : ""}">${fmtUsd(r.u)}</td><td>${fmtPct(r.p)}</td>${S.scope !== "ag" ? `<td>${fmtPct(r.e)}</td>` : ""}${S.scope !== "energy" ? `<td>${fmtPct(r.g)}</td>` : ""}</tr>`).join("");
+  $("all").querySelectorAll("th button").forEach(b => b.addEventListener("click", () => { const k2 = b.dataset.k; S.sort = [k2, S.sort[0] === k2 ? -S.sort[1] : (k2 === "n" ? 1 : -1)]; renderTable(current()); }));
+  $("tab-note").textContent = "Table view of the map. Select a column heading to sort.";
+}
+
+const tip = $("tip");
+function showTip(e, html) { tip.innerHTML = html; tip.hidden = false; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = e.clientX + pad, y = e.clientY + pad; if (x + w > innerWidth - 8) x = e.clientX - w - pad; if (y + h > innerHeight - 8) y = e.clientY - h - pad;
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px"; }
+function hideTip() { tip.hidden = true; }
+
+function select(s) { S.sel = s; try { localStorage.setItem("ssl-state", s); } catch (e) {} draw(false); }
+
+function setSeg(id, key, v) { S[key] = v; $(id).querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === v)); }
+$("mode").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; setSeg("mode", "mode", b.dataset.v);
+  if (S.mode === "scenario") setSeg("scope", "scope", "energy"); draw(true); });
+$("scope").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+  if (S.mode === "scenario" && b.dataset.v !== "energy") setSeg("mode", "mode", "latest");
+  setSeg("scope", "scope", b.dataset.v); draw(true); });
+
+function draw(full) { const cur = current(); if (full) renderSub(); renderSummary(cur); renderMap(cur); renderLedger(cur); renderChart(); renderAccount(cur); renderTable(cur); }
+renderStamp(); draw(true);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => draw(false));
+new MutationObserver(() => draw(false)).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+</script>
