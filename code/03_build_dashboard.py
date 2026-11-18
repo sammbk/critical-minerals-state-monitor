@@ -3,7 +3,7 @@
 Writes two files from dashboard/template.html:
     dashboard/index.html     standalone page for static hosting
     dashboard/fragment.html  the same page without the document skeleton, for hosts
-                             that supply their own (the claude.ai artifact viewer)
+                             that supply their own (for embedding in another page)
 
     python code/03_build_dashboard.py
 """
