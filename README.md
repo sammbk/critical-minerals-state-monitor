@@ -29,16 +29,6 @@ the docstring of `code/05_minerals.py` and on the site.
 Next: potash and phosphate rock (fertilizer channel), primary aluminum by state, local
 projection estimates of price pass-through, and a price floor and stockpile scenario tool.
 
-## Energy and agriculture layer
-
-The Monitor also carries an earlier layer, built in October 2026 under the working name
-State Shock Ledger, that measures each state's gain or loss from world prices for crude
-oil, natural gas, corn, soybeans, wheat and cattle, monthly from 2000, with a daily energy
-update, an outlook based on the EIA Short-Term Energy Outlook, and an oil and gas price
-scenario tool. Its methods note is [docs/methods.pdf](docs/methods.pdf) (source:
-`docs/methods.tex`). The layer is published at
-https://sammbk.github.io/critical-minerals-state-monitor/energy-agriculture/.
-
 ## Reproduce
 
 Python 3.11+ with `pandas`, `numpy`, `requests`, `openpyxl`, `xlrd`, `matplotlib`; a TeX
@@ -46,12 +36,13 @@ distribution with `latexmk` for the methods note.
 
 ```
 python code/01_fetch.py            # public inputs -> data/raw/ (no API keys)
-python code/02_build_ledger.py     # energy and agriculture -> data/clean/
-python code/03_build_dashboard.py  # -> dashboard/index.html
-python code/04_figures.py          # -> docs/fig_states.pdf; then latexmk -pdf docs/methods.tex
 python code/05_minerals.py         # critical minerals -> data/clean/minerals_*
 python code/06_build_monitor.py    # -> dashboard/monitor/ (the published site)
 ```
+
+Scripts `02` to `04`, `dashboard/` outside `monitor/`, and `docs/` hold earlier
+development work on energy and agricultural prices (October 2026); they are not part of
+the published site.
 
 A few USGS files must be saved by hand into `data/raw/usgs/` because the USGS site does not
 serve them to scripts: `myb1-2021-nickel.xlsx` and the Mineral Commodity Summaries 2026
@@ -66,8 +57,7 @@ code/               fetch and build scripts
 data/raw/           downloaded inputs (not tracked)
 data/clean/         outputs (tracked)
 dashboard/monitor/  the published site (built by code/06_build_monitor.py)
-dashboard/          energy and agriculture dashboard source and build
-docs/               methods note for the energy and agriculture layer
+dashboard/, docs/   earlier energy and agriculture work (not published)
 ```
 
 ## Sources
@@ -77,9 +67,6 @@ docs/               methods note for the energy and agriculture layer
 - U.S. Bureau of Economic Analysis: 2017 input-output Use table (detail, before
   redefinitions); GDP and real value added by state and industry (SAGDP2, SAGDP9).
 - World Bank: Commodity Price Data (Pink Sheet), monthly.
-- U.S. Energy Information Administration: State Energy Data System; daily WTI and Henry Hub
-  spot prices; Short-Term Energy Outlook.
-- USDA Economic Research Service: Farm Income and Wealth Statistics.
 
 ## Citation and license
 
