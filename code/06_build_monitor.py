@@ -51,6 +51,11 @@ def build() -> None:
     (OUT / "data").mkdir(parents=True, exist_ok=True)
     for f in ["minerals_state.csv", "minerals_state_industry.csv", "minerals_meta.json"]:
         shutil.copy(CLEAN / f, OUT / "data" / f)
+    # The energy and agriculture layer (October 2026) ships inside the same site, so that
+    # dashboard/monitor/ is the complete published site, locally and on GitHub Pages.
+    (OUT / "energy-agriculture").mkdir(exist_ok=True)
+    shutil.copy(ROOT / "dashboard" / "index.html", OUT / "energy-agriculture" / "index.html")
+    shutil.copy(ROOT / "docs" / "methods.pdf", OUT / "energy-agriculture" / "methods.pdf")
     html = TEMPLATE.replace("/*DATA*/null", json.dumps(payload(), separators=(",", ":")))
     (OUT / "index.html").write_text(html, encoding="utf-8")
     print(f"wrote {OUT / 'index.html'} ({len(html) / 1024:.0f} KB)")
@@ -162,8 +167,10 @@ footer{border-top:1px solid var(--rule);padding-top:16px;display:flex;flex-wrap:
 <p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:var(--text)"><b>User exposure</b> sets each metal's national total at 2024 U.S. apparent consumption (USGS) times the current price, and allocates it across states by each state's real industry output times the 2017 BEA input-output purchases of that metal per dollar of output, excluding the mining, smelting and mill industries themselves. Nickel, lead, zinc and tin share one input-output category and so share one state allocation in this release.</p>
 <p style="margin:0;font-size:14px;line-height:1.6;color:var(--text)"><b>Net effect</b> of a 10% world price rise is one tenth of producer minus user value, as a percent of state GDP. It is a first-round accounting measure, not an estimate of final outcomes.</p></div>
 <div><div class="lab">Downloads</div><ul style="margin:0;padding:0;list-style:none;font-size:14px;line-height:2">
-<li><a href="data/minerals_state.csv">State exposure by metal (CSV)</a></li><li><a href="data/minerals_state_industry.csv">State user exposure by industry (CSV)</a></li><li><a href="data/minerals_meta.json">Prices and build metadata (JSON)</a></li></ul></div></div></section>
-<footer><div>Critical Minerals State Monitor, by Samson M'boueke. Built from public data. Not an official statistic.</div><div>Release 1.0</div></footer>
+<li><a href="data/minerals_state.csv">State exposure by metal (CSV)</a></li><li><a href="data/minerals_state_industry.csv">State user exposure by industry (CSV)</a></li><li><a href="data/minerals_meta.json">Prices and build metadata (JSON)</a></li><li><a href="https://github.com/sammbk/critical-minerals-state-monitor">Source code and release history</a></li></ul>
+<div class="lab" style="margin-top:18px">Energy and agriculture layer</div><ul style="margin:0;padding:0;list-style:none;font-size:14px;line-height:2">
+<li><a href="energy-agriculture/">Dashboard (built October 2026 as the State Shock Ledger)</a></li><li><a href="energy-agriculture/methods.pdf">Methods note (PDF)</a></li></ul></div></div></section>
+<footer><div>Critical Minerals State Monitor, by Samson M'boueke. Built from public data. Not an official statistic. <a href="https://github.com/sammbk/critical-minerals-state-monitor">Source code</a></div><div>Release 1.0, November 18, 2026</div></footer>
 </main>
 
 <main class="wrap" id="v-state" hidden>
@@ -178,7 +185,7 @@ footer{border-top:1px solid var(--rule);padding-top:16px;display:flex;flex-wrap:
 <div class="ex"><div class="exn">Table 4</div><h2>Most exposed industries</h2>
 <table><thead><tr><th>Industry</th><th class="num">Metal use, $ million</th></tr></thead><tbody id="s-ind"></tbody></table>
 <div class="cap">All six metals; value at the latest 12-month average price.</div></div></section>
-<footer><div>Critical Minerals State Monitor, by Samson M'boueke. Built from public data. Not an official statistic.</div><div>Release 1.0</div></footer>
+<footer><div>Critical Minerals State Monitor, by Samson M'boueke. Built from public data. Not an official statistic. <a href="https://github.com/sammbk/critical-minerals-state-monitor">Source code</a></div><div>Release 1.0, November 18, 2026</div></footer>
 </main>
 
 <script>

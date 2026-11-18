@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use the Monitor or its data, please cite it as below."
+title: "Critical Minerals State Monitor"
+version: "1.0.0"
+date-released: 2026-11-18
+authors:
+  - family-names: "M'boueke"
+    given-names: "Samson"
+url: "https://sammbk.github.io/critical-minerals-state-monitor/"
+repository-code: "https://github.com/sammbk/critical-minerals-state-monitor"
+license: MIT
+abstract: >-
+  State-level exposure of the fifty U.S. states and the District of Columbia to world
+  price shocks in critical minerals, on the producer and the user side, built from public
+  USGS, BEA and World Bank data.
