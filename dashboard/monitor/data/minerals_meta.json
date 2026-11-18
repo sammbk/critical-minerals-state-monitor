@@ -1,0 +1,42 @@
+{
+  "prices_through": "2026-09",
+  "gdp_year": 2025,
+  "price_now_12m_avg": {
+    "aluminum": 3205.7,
+    "copper": 12851.5,
+    "lead": 1927.8,
+    "nickel": 16728.9,
+    "tin": 48102.1,
+    "zinc": 3424.7
+  },
+  "price_change_12m_pct": {
+    "aluminum": 24.9,
+    "copper": 35.8,
+    "lead": -2.2,
+    "nickel": 8.4,
+    "tin": 49.9,
+    "zinc": 20.7
+  },
+  "purchases_outside_matched_lines_share": {
+    "aluminum": 0.0067,
+    "copper": 0.0144,
+    "npzt": 0.0135
+  },
+  "state_industry_cells_suppressed": 5,
+  "national_user_usd": {
+    "aluminum": 18689036666.666664,
+    "copper": 23903790000.000004,
+    "lead": 2718127500.0,
+    "nickel": 3534820091.6666665,
+    "tin": 1664332083.3333335,
+    "zinc": 2767130666.6666656
+  },
+  "national_producer_reported_usd": {
+    "aluminum": 0.0,
+    "copper": 15407663350.0,
+    "lead": 0.0,
+    "nickel": 125299585.83333334,
+    "tin": 0.0,
+    "zinc": 2047950666.6666665
+  }
+}

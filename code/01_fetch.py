@@ -40,6 +40,17 @@ SOURCES = {
     # USDA ERS farm income: cash receipts by commodity and state (September 2026 release).
     "ers_farm_income": (
         "https://www.ers.usda.gov/media/29517/september-3-2026-release.zip", "ers/farm_income_2026-09-03.zip"),
+    # BEA input-output accounts: all Make/Use/requirements tables, including the 2017
+    # detail (402-industry) Use table used for the minerals user side.
+    "bea_io_all": ("https://apps.bea.gov/industry/iTables%20Static%20Files/AllTablesIO.zip",
+                   "bea/AllTablesIO.zip"),
+    # USGS Minerals Yearbook 2022 tables (state mine production where disclosed).
+    "usgs_myb_2022_copper": ("https://pubs.usgs.gov/myb/vol1/2022/myb1-2022-copper.xlsx",
+                             "usgs/myb1-2022-copper.xlsx"),
+    "usgs_myb_2022_zinc": ("https://pubs.usgs.gov/myb/vol1/2022/myb1-2022-zinc.xlsx",
+                           "usgs/myb1-2022-zinc.xlsx"),
+    "usgs_myb_2022_tin": ("https://pubs.usgs.gov/myb/vol1/2022/myb1-2022-tin.xlsx",
+                          "usgs/myb1-2022-tin.xlsx"),
     # World Bank Commodity Price Data (Pink Sheet), monthly.
     "wb_pinksheet_monthly": (
         "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/"

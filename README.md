@@ -18,14 +18,16 @@ using EIA's price outlook. It is built entirely from public federal and World Ba
 | Outlook | Energy windfall implied by the latest EIA Short-Term Energy Outlook |
 | Views | Latest, history, and a price scenario (oil and gas sliders) |
 
-Planned next (v1): a critical minerals layer. For every state, exposure as a producer
-(USGS state production, where disclosed) and as a user (BEA input-output requirements
-applied to state industry output) for the eight critical minerals with free World Bank
-monthly prices: aluminum, copper, lead, nickel, tin, zinc, potash and phosphate rock.
-Then: Local Projections of mineral price pass-through to U.S. producer prices, industrial
-production and state employment; a policy scenario tool for price floors and stockpile
-purchases and releases; lithium, cobalt, graphite and rare earths if price data can be
-licensed; and AI-drafted state briefs with every figure traced to a computed value.
+**Release 1.0 of the Critical Minerals State Monitor (2026-11-18)** adds a critical minerals
+layer for six metals with free World Bank monthly prices (aluminum, copper, lead, nickel, tin,
+zinc): each state's exposure as a producer (USGS mine output where published; withheld
+figures are excluded, never imputed) and as a user (2024 U.S. apparent consumption allocated
+across states with BEA 2017 input-output purchases and state real industry output). Build it
+with `python code/05_minerals.py` and `python code/06_build_monitor.py`; the page is
+`dashboard/monitor/index.html`. Method notes are in the docstring of `code/05_minerals.py`.
+
+Next: potash and phosphate rock (fertilizer channel), primary aluminum output by state,
+Local Projections of pass-through, and a price floor and stockpile scenario tool.
 
 ## Method
 
