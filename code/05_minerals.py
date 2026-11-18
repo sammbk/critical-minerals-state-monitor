@@ -84,6 +84,7 @@ WITHHELD = {"copper": ["MT", "MO"], "zinc": ["ID", "MO", "NY", "TN"],
 # ---------------------------------------------------------------- prices
 
 def prices() -> pd.DataFrame:
+    """Monthly World Bank prices of the six metals, in dollars per metric ton."""
     d = pd.read_excel(RAW / "worldbank" / "CMO-Historical-Data-Monthly.xlsx",
                       sheet_name="Monthly Prices", header=4)
     d = d.rename(columns={d.columns[0]: "month"})
@@ -97,6 +98,7 @@ def prices() -> pd.DataFrame:
 # ---------------------------------------------------------------- BEA
 
 def sagdp(table: str) -> pd.DataFrame:
+    """One BEA state GDP table (SAGDP2 or SAGDP9) for all states, with state codes."""
     with zipfile.ZipFile(RAW / "bea" / "SAGDP.zip") as z:
         name = [n for n in z.namelist() if n.startswith(f"{table}__ALL_AREAS")][0]
         d = pd.read_csv(z.open(name), encoding="latin1", low_memory=False)
@@ -106,6 +108,7 @@ def sagdp(table: str) -> pd.DataFrame:
 
 
 def expand(spec: str) -> list[str]:
+    """Expand a BEA NAICS specification such as '3361-3363, 3364' into a list of codes."""
     spec = spec.replace("3364-3466", "3364-3366")          # typo in the BEA file
     out = []
     for part in spec.split(","):
@@ -119,6 +122,7 @@ def expand(spec: str) -> list[str]:
 
 
 def leaf_map(g2: pd.DataFrame) -> dict[str, int]:
+    """Map NAICS prefixes to the state GDP industry lines that partition the economy."""
     lines = g2[g2["LineCode"].isin(LEAVES)][["LineCode", "IndustryClassification"]]
     pref = {}
     for _, r in lines.drop_duplicates("LineCode").iterrows():
@@ -128,6 +132,7 @@ def leaf_map(g2: pd.DataFrame) -> dict[str, int]:
 
 
 def match(code: str, pref: dict[str, int]):
+    """State GDP line for an input-output industry code, by its longest matching NAICS prefix."""
     for k in range(6, 1, -1):
         if code[:k] in pref:
             return pref[code[:k]]
@@ -135,6 +140,7 @@ def match(code: str, pref: dict[str, int]):
 
 
 def use_table() -> tuple[pd.DataFrame, pd.Series]:
+    """BEA 2017 detail Use table (industries only) and total industry output."""
     with zipfile.ZipFile(RAW / "bea" / "AllTablesIO.zip") as z:
         b = z.read("IOUse_Before_Redefinitions_PRO_2017_Detail.xlsx")
     d = pd.read_excel(io.BytesIO(b), sheet_name="2017", header=None)
@@ -151,6 +157,7 @@ def use_table() -> tuple[pd.DataFrame, pd.Series]:
 # ---------------------------------------------------------------- build
 
 def build() -> None:
+    """Build producer and user exposure by state and metal and write the outputs to data/clean/."""
     CLEAN.mkdir(parents=True, exist_ok=True)
     p = prices()
     last = p["copper"].dropna().index.max()

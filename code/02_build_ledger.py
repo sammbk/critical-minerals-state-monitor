@@ -129,6 +129,7 @@ def load_gdp() -> pd.DataFrame:
 
 
 def load_daily_spot() -> pd.DataFrame:
+    """Daily WTI crude oil and Henry Hub natural gas spot prices from EIA."""
     out = {}
     for c, f in [("crude_oil", "RWTCd.xls"), ("natural_gas", "RNGWHHDd.xls")]:
         d = pd.read_excel(RAW / "eia" / f, sheet_name="Data 1", header=2)
@@ -196,6 +197,9 @@ def gdp_for_year(gdp: pd.DataFrame, years: pd.Series, states: pd.Series) -> np.n
 # ---------------------------------------------------------------- ledger
 
 def build() -> None:
+    """Build net positions and the monthly, latest and outlook ledgers, and write them to
+    data/clean/.
+    """
     CLEAN.mkdir(parents=True, exist_ok=True)
     prices = load_prices()
     pos = positions(prices)

@@ -59,6 +59,7 @@ SOURCES = {
 
 
 def sha256(path: Path) -> str:
+    """Return the SHA-256 checksum of a file."""
     h = hashlib.sha256()
     with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(1 << 20), b""):
@@ -67,6 +68,7 @@ def sha256(path: Path) -> str:
 
 
 def fetch(url: str, dest: Path, tries: int = 3) -> None:
+    """Download a URL to dest through a temporary file, retrying on failure."""
     dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_suffix(dest.suffix + ".part")
     for attempt in range(1, tries + 1):

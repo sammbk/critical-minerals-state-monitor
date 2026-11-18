@@ -39,6 +39,7 @@ NAMES = {
 
 
 def r(x, nd):
+    """Round x to nd decimals for JSON, mapping missing values to None."""
     return None if x is None or (isinstance(x, float) and np.isnan(x)) else round(float(x), nd)
 
 

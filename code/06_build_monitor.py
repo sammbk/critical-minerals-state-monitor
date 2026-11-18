@@ -32,6 +32,9 @@ NAMES = {"AK": "Alaska", "AL": "Alabama", "AR": "Arkansas", "AZ": "Arizona", "CA
 
 
 def payload() -> dict:
+    """Data object embedded in the page: metadata and, per state, exposure by metal and top
+    industries.
+    """
     d = pd.read_csv(CLEAN / "minerals_state.csv")
     meta = json.loads((CLEAN / "minerals_meta.json").read_text(encoding="utf-8"))
     ind = pd.read_csv(CLEAN / "minerals_state_industry.csv")
@@ -49,6 +52,7 @@ def payload() -> dict:
 
 
 def build() -> None:
+    """Write the site to dashboard/monitor/: the page, the data files and the methods note."""
     (OUT / "data").mkdir(parents=True, exist_ok=True)
     for f in ["minerals_state.csv", "minerals_state_industry.csv", "minerals_meta.json"]:
         shutil.copy(CLEAN / f, OUT / "data" / f)
