@@ -1,0 +1,315 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{caption}
+\usepackage{xurl}
+\definecolor{linkblue}{HTML}{1A5FB4}
+\usepackage[colorlinks=true,citecolor=linkblue,linkcolor=linkblue,urlcolor=linkblue]{hyperref}
+
+\setlength{\parskip}{0.45em}
+\setlength{\parindent}{0pt}
+\setlist{itemsep=0.25em,topsep=0.3em}
+\captionsetup{font=small,labelfont=bf}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+
+\title{\textbf{Critical Minerals State Monitor: Methods Note}\\[0.3em]\large Release 1.0}
+\author{Samson M'boueke}
+\date{November 18, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent The Critical Minerals State Monitor measures how exposed each of the fifty U.S.\
+states and the District of Columbia is to world price movements in critical minerals. It
+measures exposure on two sides, kept separate: as a producer, through the value of the
+state's mine output, and as a user, through the metal its industries buy. Both are reported
+in dollars and as a share of state GDP, together with the first-round net effect of a 10
+percent rise in world prices. Release 1.0 covers six metals on the final 2025 U.S.\ List of
+Critical Minerals that have free monthly world prices: aluminum, copper, lead, nickel, tin
+and zinc. This note documents the definitions, data and limitations of release 1.0. Every
+figure is rebuilt from public data by the code in the Monitor's repository.
+\end{abstract}
+
+\section{Measures}
+
+For state $s$ and metal $m$, the Monitor reports three quantities.
+
+\paragraph{Producer exposure} is the value of the state's mine output at the current world
+price,
+\begin{equation}
+  P_{s,m} \;=\; Q_{s,m} \times \bar p_m ,
+  \label{eq:producer}
+\end{equation}
+where $Q_{s,m}$ is the state's mine output in metric tons of metal content, as published by
+the U.S.\ Geological Survey (USGS), and $\bar p_m$ is the average world price over the latest
+twelve months.
+
+\paragraph{User exposure} is the value of the metal bought by the state's industries outside
+the mining and metal-processing chain, at the current world price:
+\begin{equation}
+  U_{s,m} \;=\; C_m \,\bar p_m \times
+  \frac{w_{g(m),s}}{\sum_{s'} w_{g(m),s'}},
+  \qquad
+  w_{g,s} \;=\; \sum_{L} a_{g,L}\, X_{L,s} .
+  \label{eq:user}
+\end{equation}
+The national level is $C_m \bar p_m$, U.S.\ apparent consumption of the metal valued at the
+current price. It is shared across states in proportion to $w_{g,s}$, the state's purchases of
+the input-output commodity group $g(m)$ that contains the metal. Here $a_{g,L}$ is the
+national purchase of group $g$ per dollar of output in industry $L$, and $X_{L,s}$ is the
+state's real output in industry $L$. Section~\ref{sec:user} defines each term.
+
+\paragraph{Net effect} of a 10 percent rise in the world price, as a percent of state GDP, is
+\begin{equation}
+  N_{s,m} \;=\; 0.1 \times \frac{P_{s,m} - U_{s,m}}{Y_s} \times 100 ,
+  \label{eq:net}
+\end{equation}
+where $Y_s$ is current-dollar state GDP. The all-metals figure sums $N_{s,m}$ over the six
+metals, which assumes all six prices rise by 10 percent together.
+
+Keeping the producer and user sides separate follows the author's job market paper, which
+measures commodity price shocks through separate export and import price indices with
+predetermined weights. A state can be heavily exposed on both sides at once, and the two
+sides matter to different people: mine owners, workers and severance tax revenues on one
+side, metal-using manufacturers and their workers on the other.
+
+\section{Prices}
+
+Prices are the World Bank's monthly Commodity Price Data (the ``Pink Sheet''), in US dollars
+per metric ton. The current price $\bar p_m$ is the average of the latest twelve months; in
+release 1.0 that is October 2025 to September 2026. Averaging over a year matches the annual
+quantities it multiplies and removes month-to-month noise. Table~\ref{tab:prices} reports the
+prices used and their change from the previous twelve-month average.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{World prices used in release 1.0}
+\label{tab:prices}
+\begin{tabularx}{0.82\textwidth}{@{}L R R@{}}
+\toprule
+Metal & Average price, Oct 2025 to Sep 2026 (dollars per metric ton)
+  & Change from previous 12 months (percent) \\
+\midrule
+Aluminum & 3,206  & $+24.9$ \\
+Copper   & 12,852 & $+35.8$ \\
+Lead     & 1,928  & $-2.2$ \\
+Nickel   & 16,729 & $+8.4$ \\
+Tin      & 48,102 & $+49.9$ \\
+Zinc     & 3,425  & $+20.7$ \\
+\bottomrule
+\end{tabularx}
+\par\smallskip
+\begin{minipage}{0.82\textwidth}\footnotesize
+Source: World Bank, Commodity Price Data (Pink Sheet), monthly; author's calculations.
+\end{minipage}
+\end{table}
+
+\section{Producer exposure}
+
+USGS publishes U.S.\ mine production by state for few metals, and it withholds a state's
+figure where publishing it would disclose an individual company's output. The Monitor uses
+the most detailed figure USGS publishes for each metal and never imputes a withheld one.
+Table~\ref{tab:producer} lists the source and coverage for each metal.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Producer data by metal, release 1.0}
+\label{tab:producer}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{1.7cm} L L@{}}
+\toprule
+Metal & State figures used & Withheld or not covered \\
+\midrule
+Copper & Output of the leading mines in 2022 (Minerals Yearbook 2022, copper, table 2),
+  summed by the state of each mine: Arizona 857, Utah 179, New Mexico 86, Nevada 61 and
+  Michigan 16 thousand metric tons. These mines account for 1,199 of the 1,230 thousand
+  tons mined in the United States in 2022.
+  & Montana and Missouri, whose output USGS withholds; the remainder of national output
+  not listed by mine. \\
+\addlinespace
+Zinc & Alaska, 598 thousand metric tons of recoverable zinc in 2022 (Minerals Yearbook
+  2022, zinc, table 2), out of 747 thousand nationally.
+  & Idaho, Missouri, New York and Tennessee, reported by USGS only as a combined total. \\
+\addlinespace
+Nickel & Michigan, 7,490 metric tons in 2024 (Mineral Commodity Summaries 2026). The Eagle
+  mine in Michigan is the only U.S.\ nickel mine, so the national mine figure is
+  Michigan's.
+  & None. \\
+\addlinespace
+Lead & None.
+  & Missouri, Alaska and Idaho produce lead; USGS withholds the state values. \\
+\addlinespace
+Tin & None. & The United States has no tin mine production. \\
+\addlinespace
+Aluminum & None.
+  & Primary aluminum output by state is not compiled in this release. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Quantities are from the latest year USGS publishes by state or mine (2022 for copper and
+zinc, 2024 for nickel) and are valued at the current price. Withheld states are flagged in
+the data files and marked on the Monitor's map; their producer exposure is reported as zero,
+so it understates their true exposure.
+
+\section{User exposure}\label{sec:user}
+
+\paragraph{National level.} The national total for each metal, $C_m$, is U.S.\ apparent
+consumption in 2024 from the USGS Mineral Commodity Summaries 2026, in metric tons of metal
+content: aluminum 5.83 million, copper 1.86 million (primary refined copper plus old scrap),
+lead 1.41 million, nickel 211,300 (apparent primary consumption of 90,300 plus 121,000 of
+purchased scrap), tin 34,600 and zinc 808,000. Valued at current prices, these give national
+user totals of about 18.7 billion dollars for aluminum, 23.9 billion for copper, 2.7 billion
+for lead, 3.5 billion for nickel, 1.7 billion for tin and 2.8 billion for zinc.
+
+The level is taken from USGS rather than from input-output purchase values because the
+input-output commodities are broader than the metal itself: their values include fabrication
+margins and, for nonferrous refining, gold and silver. Using purchase values as the level
+overstated metal use several times over, by about five times for nickel.
+
+\paragraph{Allocation across states.} The national total is shared across states with the
+Bureau of Economic Analysis (BEA) 2017 detail Use table (before redefinitions, at producers'
+prices). Each metal is matched to the input-output commodities that carry it
+(Table~\ref{tab:groups}). For each industry, $a_{g,L}$ is the 2017 purchase of those
+commodities per dollar of 2017 industry output. Purchases by the mining and metal-processing
+industries themselves (the five commodities in Table~\ref{tab:groups}) are excluded, because
+those industries pass the metal on rather than use it; the user side counts the industries
+that turn metal into products. Detail industries are mapped to the industry lines of BEA's
+GDP by state by their NAICS codes. Purchases by industries outside those lines, mainly
+government, are dropped: 0.7 percent of the aluminum group's purchases, 1.4 percent of
+copper's and 1.4 percent of the nickel, lead, zinc and tin group's.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Input-output commodities used to allocate each metal}
+\label{tab:groups}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}p{1.6cm} L@{}}
+\toprule
+Metal & BEA code & Commodity \\
+\midrule
+Aluminum & 331313 & Alumina refining and primary aluminum production \\
+         & 33131B & Aluminum product manufacturing from purchased aluminum \\
+\addlinespace
+Copper   & 331420 & Copper rolling, drawing, extruding and alloying \\
+\addlinespace
+Nickel, lead, zinc, tin & 212230 & Copper, nickel, lead, and zinc mining \\
+         & 331410 & Nonferrous metal (except aluminum) smelting and refining \\
+\bottomrule
+\end{tabularx}
+\par\smallskip
+\begin{minipage}{\textwidth}\footnotesize
+Source: BEA, 2017 detail Use table, before redefinitions, producers' prices. Refined copper
+(within 331410) is bought mostly by wire-rod and brass mills, which belong to 331420; the
+Monitor therefore allocates copper by purchases of 331420's products.
+\end{minipage}
+\end{table}
+
+BEA does not split its nonferrous smelting and mining commodities by metal, so nickel, lead,
+zinc and tin share one allocation across states in this release: each state's share of the
+national total is the same for all four, and only the national totals differ.
+
+\paragraph{State output.} $X_{L,s}$ is the state's real value added in industry line $L$ in
+2025, in chained 2017 dollars (BEA table SAGDP9), multiplied by the national ratio of output
+to value added in that industry in 2017. This converts value added to output at 2017 prices,
+on the same basis as the 2017 purchase coefficients. BEA suppresses five state-industry
+values for confidentiality; they are treated as zero.
+
+\section{State GDP}
+
+The denominator $Y_s$ is current-dollar GDP by state for 2025 (BEA table SAGDP2), the latest
+year published for all states when release 1.0 was built.
+
+\section{Results in release 1.0}
+
+The figures move with prices and are given here only to show what the measure produces. A
+uniform 10 percent rise in all six world prices raises income, in this first-round
+accounting, in five states: Alaska (by 0.28 percent of state GDP), Arizona (0.17), New
+Mexico (0.07), Utah (0.06) and Nevada (0.02). It lowers it most in Indiana ($-0.06$),
+Alabama, Michigan and Kentucky (each about $-0.05$) and Wisconsin ($-0.03$). In these
+states the largest users of the six metals are motor vehicle and parts, primary metal,
+fabricated metal and electrical equipment manufacturing. In Michigan, motor vehicle and parts manufacturing accounts for about 2.4
+billion of the roughly 3.8 billion dollars of the six metals used in the state.
+
+\section{What the measures are and are not}
+
+The net effect is an accounting measure of the first-round change in income from a price
+change, holding quantities fixed. It is not an estimate of final outcomes. In particular:
+\begin{itemize}
+  \item \textbf{Ownership.} Producer exposure is the value of output located in the state.
+    Mine profits accrue to shareholders who may live anywhere; the state keeps wages,
+    local purchases and severance and income taxes. The share of a price gain that stays in
+    the state is not measured in this release.
+  \item \textbf{Pass-through.} User exposure assumes the world price change reaches the
+    users of the metal in full. Contract pricing, hedging, inventories and the ability to
+    pass costs on to customers change how much is borne and when. Estimating that
+    pass-through is the subject of the Monitor's first working paper, and its results will
+    be added to the Monitor when they exist.
+  \item \textbf{Direct purchases only.} User exposure counts metal bought directly by each
+    industry. Metal embodied in parts bought from other industries, other states or abroad
+    is not traced, and the 2017 coefficients assume every state's industry uses metal as
+    the national industry did in 2017.
+  \item \textbf{Withheld data.} Producer exposure is understated wherever USGS withholds a
+    state's figure (Table~\ref{tab:producer}), and primary aluminum producers are not yet
+    covered.
+  \item \textbf{Shared allocation.} Nickel, lead, zinc and tin share one state allocation.
+  \item \textbf{Vintages.} Mine quantities are from 2022 or 2024, consumption from 2024,
+    input-output coefficients from 2017 and state output from 2025; all are valued at
+    current prices.
+  \item \textbf{Validation.} The measures have not yet been validated against state
+    outcomes.
+\end{itemize}
+
+\section{Data files and reproduction}
+
+The Monitor publishes three files:
+\begin{itemize}
+  \item \texttt{minerals\_state.csv}: producer and user exposure in dollars and percent of
+    GDP, the producer data status and the net effect, by state and metal;
+  \item \texttt{minerals\_state\_industry.csv}: user exposure by state, metal and industry
+    line;
+  \item \texttt{minerals\_meta.json}: prices, data years and build diagnostics.
+\end{itemize}
+The code is at \url{https://github.com/sammbk/critical-minerals-state-monitor}, release v1.0.0:
+\texttt{code/01\_fetch.py} downloads the public inputs, \texttt{code/05\_minerals.py} builds
+the measures and \texttt{code/06\_build\_monitor.py} builds the site, published at
+\url{https://sammbk.github.io/critical-minerals-state-monitor/}. A few USGS files must be
+saved by hand because the USGS website does not serve them to scripts; the repository's
+README lists them.
+
+\section{Planned changes}
+
+Release 1.1 adds potash and phosphate rock, which are on the critical minerals list, are
+priced monthly by the World Bank, and reach users mainly through fertilizer; it also adds
+primary aluminum output by state. Later releases add estimates of price pass-through, a
+calculator for the state incidence of price floors and stockpile purchases and releases,
+and, if a license is funded, lithium, cobalt, graphite and rare earths, whose prices are
+largely sold under license.
+
+\section*{Sources}
+
+\begin{itemize}[leftmargin=1.2em]
+  \item U.S.\ Geological Survey. Minerals Yearbook 2022: Copper; Zinc. Tables 1 and 2.
+  \item U.S.\ Geological Survey. Mineral Commodity Summaries 2026: Aluminum, Copper, Lead,
+    Nickel, Tin, Zinc. Salient statistics.
+  \item U.S.\ Bureau of Economic Analysis. Input-Output Accounts, 2017 detail Use table,
+    before redefinitions, producers' prices.
+  \item U.S.\ Bureau of Economic Analysis. GDP by State: SAGDP2 (GDP in current dollars) and
+    SAGDP9 (real GDP in chained 2017 dollars), by industry.
+  \item World Bank. Commodity Price Data (Pink Sheet), monthly.
+  \item U.S.\ Geological Survey. Final 2025 List of Critical Minerals. Federal Register,
+    November 7, 2025.
+\end{itemize}
+
+\end{document}
