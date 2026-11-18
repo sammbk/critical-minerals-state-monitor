@@ -18,9 +18,14 @@ using EIA's price outlook. It is built entirely from public federal and World Ba
 | Outlook | Energy windfall implied by the latest EIA Short-Term Energy Outlook |
 | Views | Latest, history, and a price scenario (oil and gas sliders) |
 
-Planned next: copper and potash, coal, the consumer side of food, futures-based outlook
-bands, state outcome projections (employment, income, prices, revenue) from Local
-Projections, and AI-drafted state briefs with every figure traced to a computed value.
+Planned next (v1): a critical minerals layer. For every state, exposure as a producer
+(USGS state production, where disclosed) and as a user (BEA input-output requirements
+applied to state industry output) for the eight critical minerals with free World Bank
+monthly prices: aluminum, copper, lead, nickel, tin, zinc, potash and phosphate rock.
+Then: Local Projections of mineral price pass-through to U.S. producer prices, industrial
+production and state employment; a policy scenario tool for price floors and stockpile
+purchases and releases; lithium, cobalt, graphite and rare earths if price data can be
+licensed; and AI-drafted state briefs with every figure traced to a computed value.
 
 ## Method
 
