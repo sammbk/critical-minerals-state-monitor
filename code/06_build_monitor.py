@@ -1,7 +1,9 @@
 """Build the Critical Minerals State Monitor page from data/clean/minerals_*.
 
 Writes dashboard/monitor/index.html (one self-contained page: national overview and
-state profiles) and copies the clean CSVs to dashboard/monitor/data/ for download.
+state profiles), copies the clean CSVs to dashboard/monitor/data/ for download, and copies
+the energy and agriculture dashboard and its methods note to
+dashboard/monitor/energy-agriculture/. The dashboard/monitor/ folder is the published site.
 
     python code/06_build_monitor.py
 """
